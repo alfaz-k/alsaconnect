@@ -90,6 +90,7 @@ const biometricUnlockBtn = document.getElementById("biometricUnlockBtn");
 const savedBioUsername = document.getElementById("savedBioUsername");
 const menuBiometricBtn = document.getElementById("menuBiometricBtn");
 const menuBiometricText = document.getElementById("menuBiometricText");
+const menuBiometricIcon = document.getElementById("menuBiometricIcon");
 
 // Hub Elements
 const openChatCard = document.getElementById("openChatCard");
@@ -247,8 +248,8 @@ function generateCapitalCaptcha() {
   for (let i = 0; i < code.length; i++) {
     ctx.save();
     ctx.fillStyle = i % 2 === 0 ? "#c084fc" : "#38bdf8";
-    const x = 14 + i * 23;
-    const y = 29 + (Math.random() * 4 - 2);
+    const x = 14 + i * 21;
+    const y = 26 + (Math.random() * 4 - 2);
     const angle = (Math.random() - 0.5) * 0.25;
     ctx.translate(x, y);
     ctx.rotate(angle);
@@ -274,7 +275,7 @@ togglePassword.addEventListener("click", () => {
 });
 
 // =================================================================
-// 5. WEBAUTHN / BIOMETRIC AUTHENTICATION
+// 5. WEBAUTHN / BIOMETRIC AUTHENTICATION & REMOVE/DISABLE
 // =================================================================
 function checkBiometricAvailability() {
   const savedBio = localStorage.getItem("alsaconnect_biometric_user");
@@ -326,6 +327,19 @@ biometricUnlockBtn.addEventListener("click", async () => {
 menuBiometricBtn.addEventListener("click", async () => {
   toolsMenuDrawer.classList.add("hidden");
 
+  const saved = localStorage.getItem("alsaconnect_biometric_user");
+  
+  // If active on this device for the current user, clicking disables/removes it
+  if (saved && saved === currentUser.username) {
+    localStorage.removeItem("alsaconnect_biometric_user");
+    localStorage.removeItem("alsaconnect_biometric_id");
+    updateBiometricMenuLabel();
+    checkBiometricAvailability();
+    showWelcomeToast("🗑️ Biometric unlock disabled for this device.");
+    return;
+  }
+
+  // Otherwise, enroll biometrics
   if (!window.PublicKeyCredential) {
     showWelcomeToast("❌ Biometrics not supported on this browser.");
     return;
@@ -349,8 +363,8 @@ menuBiometricBtn.addEventListener("click", async () => {
           displayName: currentUser.name
         },
         pubKeyCredParams: [
-          { type: "public-key", alg: -7 },
-          { type: "public-key", alg: -257 }
+          { type: "public-key", alg: -7 },  // ES256
+          { type: "public-key", alg: -257 } // RS256
         ],
         authenticatorSelection: {
           authenticatorAttachment: "platform",
@@ -366,6 +380,7 @@ menuBiometricBtn.addEventListener("click", async () => {
       localStorage.setItem("alsaconnect_biometric_id", rawIdString);
       showWelcomeToast("✅ Face ID / Fingerprint enabled for this device!");
       updateBiometricMenuLabel();
+      checkBiometricAvailability();
     }
   } catch (err) {
     console.warn("Biometric Registration Error:", err);
@@ -377,9 +392,13 @@ function updateBiometricMenuLabel() {
   if (currentUser) {
     const saved = localStorage.getItem("alsaconnect_biometric_user");
     if (saved === currentUser.username) {
-      menuBiometricText.textContent = "Biometric Active (Tap to re-link)";
+      menuBiometricText.textContent = "Disable Face ID / Biometric";
+      menuBiometricBtn.classList.add("active-bio-danger");
+      menuBiometricIcon.className = "fa-solid fa-trash-can";
     } else {
       menuBiometricText.textContent = "Setup Face ID / Fingerprint";
+      menuBiometricBtn.classList.remove("active-bio-danger");
+      menuBiometricIcon.className = "fa-solid fa-fingerprint";
     }
   }
 }
@@ -771,7 +790,7 @@ function startChatSession() {
   messageFeed.innerHTML = `
     <div class="encryption-banner">
       <i class="fa-solid fa-lock"></i>
-      <span>End-to-End Encrypted | TRUST ME </span>
+      <span>End-to-End Encrypted &bull; TRUST ME</span>
     </div>
   `;
 
@@ -980,6 +999,7 @@ function attachBubbleEvents(wrapper, msgId, msg, isMine) {
 // =================================================================
 menuToggleBtn.addEventListener("click", (e) => {
   e.stopPropagation();
+  updateBiometricMenuLabel();
   toolsMenuDrawer.classList.toggle("hidden");
 });
 
@@ -1213,7 +1233,7 @@ document.addEventListener("click", (e) => {
 });
 
 // =================================================================
-// 20. LOGOUT CLEANUP (ONLY EXPLICIT TRIGGER)
+// 20. LOGOUT CLEANUP
 // =================================================================
 function executeLogout() {
   clearInterval(countdownInterval);
