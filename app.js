@@ -22,7 +22,7 @@ const db = firebase.database();
 // =================================================================
 const USERS = {
   "Hafsa81": {
-    password: "Hafsa@818181",
+    password: "hafsa@8181",
     name: "Hafsa",
     gender: "female",
     avatarClass: "avatar-hafsa",
@@ -31,7 +31,7 @@ const USERS = {
     partnerAvatarClass: "avatar-alfaz"
   },
   "Alfaz81": {
-    password: "Alfaz@8181",
+    password: "alfaz@8181",
     name: "Alfaz",
     gender: "male",
     avatarClass: "avatar-alfaz",
