@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AlsaConnect —  Messenger</title>
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Firebase App & Realtime Database SDKs (Compat CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Ambient Glow -->
+  <div class="glow-orb glow-1" id="glow1"></div>
+  <div class="glow-orb glow-2" id="glow2"></div>
+
+  <!-- Welcome Floating Toast Alert -->
+  <div class="welcome-toast hidden" id="welcomeToast">
+    <div class="toast-icon">
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+    </div>
+    <div class="toast-content">
+      <h4>Welcome to AlsaConnect!</h4>
+      <p id="toastMessage">✨ Exciting new features coming soon!</p>
+    </div>
+  </div>
+
+  <!-- ================= FAKE CAMOUFLAGE / PANIC SCREEN ================= -->
+  <div class="camouflage-screen hidden" id="camouflageScreen">
+    <div class="camo-navbar">
+      <div class="camo-nav-left" id="camoExitTrigger" title="Double tap here to exit disguise">
+        <i class="fa-solid fa-book-open"></i>
+        <span>WikiReference Document #4028</span>
+      </div>
+      <div class="camo-nav-right">
+        <span>History</span>
+        <span>Edit</span>
+        <span>View Source</span>
+      </div>
+    </div>
+    <div class="camo-content">
+      <h1>Quantum Computing: Principles and Distributed Systems</h1>
+      <p class="camo-meta">From Wikipedia, the free encyclopedia of computer science archives.</p>
+      <hr>
+      <p>Quantum computing is a rapidly-emerging technology that harnesses the laws of quantum mechanics to solve problems too complex for classical computers. Distributed state persistence relies heavily on continuous qubit synchronization protocols across non-local channels.</p>
+      <h2>Architecture & Scalability</h2>
+      <p>Modern architectures utilize superposition and entanglement frameworks to minimize compute latencies across multi-tenant clusters. Real-time parity is established through fault-tolerant parity networks operating within cryptographic parameters.</p>
+      <div class="camo-note">
+        <strong>Tip:</strong> Press <code>ESC</code> or double-tap the top header title to return to your workspace.
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= AUTHENTICATION VIEW ================= -->
+  <main class="auth-wrapper" id="authScreen">
+    <div class="glass-card login-card">
+      
+      <div class="brand-section">
+        <div class="brand-logo">
+          <i class="fa-solid fa-heart-pulse"></i>
+        </div>
+        <h1>Alsa<span>Connect</span></h1>
+        <p>Assalamu Alaikum.</p>
+      </div>
+
+      <!-- Quick Biometric Unlock -->
+      <div class="biometric-login-box hidden" id="biometricLoginBox">
+        <button type="button" class="biometric-btn" id="biometricUnlockBtn">
+          <div class="bio-icon-ring">
+            <i class="fa-solid fa-fingerprint"></i>
+          </div>
+          <div class="bio-text">
+            <strong>One-Tap Biometric Unlock</strong>
+            <span>Use Face ID / Fingerprint for <em id="savedBioUsername">User</em></span>
+          </div>
+          <i class="fa-solid fa-chevron-right bio-arrow"></i>
+        </button>
+        <div class="auth-divider">
+          <span>or login with credentials</span>
+        </div>
+      </div>
+
+      <form id="loginForm" autocomplete="off">
+        
+        <!-- Username Field -->
+        <div class="form-group">
+          <label for="username"><i class="fa-solid fa-circle-user"></i> Username</label>
+          <div class="input-container">
+            <input type="text" id="username" placeholder=" Username Jii" required>
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group">
+          <label for="password"><i class="fa-solid fa-key"></i> Password</label>
+          <div class="input-container">
+            <input type="password" id="password" placeholder="Apka Password Likhe" required>
+            <button type="button" class="eye-toggle-btn" id="togglePassword" title="Toggle password visibility">
+              <i class="fa-regular fa-eye-slash"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Alphanumeric Capital Captcha -->
+        <div class="form-group captcha-group">
+          <label><i class="fa-solid fa-shield-halved"></i> Security Verification</label>
+          <div class="captcha-preview-row">
+            <canvas id="captchaCanvas" width="160" height="44"></canvas>
+            <button type="button" class="btn-icon refresh-btn-compact" id="refreshCaptchaBtn" title="Regenerate Captcha">
+              <i class="fa-solid fa-arrows-rotate"></i>
+            </button>
+          </div>
+          <div class="input-container">
+            <input type="text" id="captchaInput" placeholder="DEKH KO TYPE KAR" maxlength="6" style="text-transform: uppercase;" required>
+          </div>
+        </div>
+
+        <div id="authError" class="auth-error-badge"></div>
+
+        <button type="submit" class="primary-submit-btn">
+          <span>WELCOME</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </form>
+
+      <!-- Highlighted Author Signature -->
+      <footer class="designer-badge">
+        <span>Designed By <strong class="highlight-author">ALSA</strong></span>
+      </footer>
+    </div>
+  </main>
+
+  <!-- ================= CONVERSATION LIST / MESSAGES HUB ================= -->
+  <main class="chat-app-wrapper hidden" id="conversationHubScreen">
+    <div class="glass-card chat-card">
+      
+      <header class="app-header">
+        <div class="hub-brand">
+          <div class="hub-logo-mini">
+            <i class="fa-solid fa-heart-pulse"></i>
+          </div>
+          <h2>Messages</h2>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn-icon" id="hubCamoBtn" title="Camouflage Mode (Panic Button)">
+            <i class="fa-solid fa-shield-halved"></i>
+          </button>
+          <button class="btn-icon danger-icon" id="hubLogoutBtn" title="Exit Session">
+            <i class="fa-solid fa-power-off"></i>
+          </button>
+        </div>
+      </header>
+
+      <div class="hub-content">
+        <div class="hub-search-bar">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" placeholder="Search direct chat..." disabled>
+        </div>
+
+        <div class="conversations-list">
+          <div class="conversation-card" id="openChatCard">
+            <div class="card-avatar-ring" id="hubPartnerAvatar">
+              <i class="fa-solid fa-user"></i>
+              <span class="hub-status-badge" id="hubStatusBadge"></span>
+            </div>
+
+            <div class="card-details">
+              <div class="card-title-row">
+                <h3 id="hubPartnerName">Partner</h3>
+                <span class="card-time" id="hubLastActiveTime">Offline</span>
+              </div>
+              <p class="card-preview" id="hubLastMessagePreview">Click to enter  &bull; Welcome</p>
+            </div>
+
+            <div class="card-arrow">
+              <i class="fa-solid fa-chevron-right"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-subfooter">
+        <span>AlsaConnect | Designed By <strong class="highlight-author">Alsa</strong></span>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ================= FULL CHAT APPLICATION VIEW ================= -->
+  <main class="chat-app-wrapper hidden" id="chatScreen">
+    <div class="glass-card chat-card">
+      
+      <!-- Top App Bar -->
+      <header class="app-header">
+        <div class="partner-meta">
+          <button type="button" class="btn-back-hub" id="backToHubBtn" title="Back to Messages">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+
+          <div class="avatar-ring" id="partnerAvatar">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div class="partner-info">
+            <h2 id="partnerDisplayName">Partner</h2>
+            <div class="status-indicator" id="partnerStatusPill">
+              <span class="status-dot"></span>
+              <span class="status-text" id="partnerStatusText">Offline</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Header Actions Drawer Menu -->
+        <div class="header-actions">
+          <button class="btn-icon" id="chatCamoBtn" title="Camouflage / Panic Mode (ESC)">
+            <i class="fa-solid fa-shield-halved"></i>
+          </button>
+
+          <div class="menu-dropdown-container">
+            <button class="btn-icon" id="menuToggleBtn" title="Tools & Menu">
+              <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+
+            <!-- Slide-down Tools Drawer -->
+            <div class="tools-menu-drawer hidden" id="toolsMenuDrawer">
+              <button type="button" class="drawer-item" id="menuCountdownBtn">
+                <i class="fa-solid fa-hourglass-half"></i>
+                <span>Shared Countdown</span>
+              </button>
+              <button type="button" class="drawer-item" id="menuBiometricBtn">
+                <i class="fa-solid fa-fingerprint"></i>
+                <span id="menuBiometricText">Setup Biometric / Face ID</span>
+              </button>
+              <button type="button" class="drawer-item" id="menuNicknameBtn">
+                <i class="fa-solid fa-user-pen"></i>
+                <span>Set Nickname</span>
+              </button>
+              <button type="button" class="drawer-item" id="menuSearchBtn">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Search in Chat</span>
+              </button>
+              <button type="button" class="drawer-item" id="menuScratchpadBtn">
+                <i class="fa-solid fa-note-sticky"></i>
+                <span>Shared Scratchpad</span>
+              </button>
+              <button type="button" class="drawer-item" id="menuThemeBtn">
+                <i class="fa-solid fa-palette"></i>
+                <span>Change Theme</span>
+              </button>
+              <button type="button" class="drawer-item danger-item" id="menuClearChatBtn">
+                <i class="fa-solid fa-broom"></i>
+                <span>Clear All Messages</span>
+              </button>
+            </div>
+          </div>
+
+          <button class="btn-icon danger-icon" id="logoutBtn" title="Exit Chat">
+            <i class="fa-solid fa-power-off"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Top Real-Time Countdown Banner -->
+      <div class="countdown-banner hidden" id="countdownBanner">
+        <div class="countdown-header-info">
+          <i class="fa-solid fa-heart pulse-heart"></i>
+          <span class="countdown-title" id="countdownTitleDisplay">Special Event</span>
+        </div>
+        <div class="countdown-digits-cluster">
+          <div class="digit-box"><span id="cdDays">00</span><small>D</small></div>
+          <span class="digit-separator">:</span>
+          <div class="digit-box"><span id="cdHours">00</span><small>H</small></div>
+          <span class="digit-separator">:</span>
+          <div class="digit-box"><span id="cdMinutes">00</span><small>M</small></div>
+          <span class="digit-separator">:</span>
+          <div class="digit-box"><span id="cdSeconds">00</span><small>S</small></div>
+        </div>
+        <button type="button" class="btn-icon-mini" id="editCountdownQuickBtn" title="Edit Countdown">
+          <i class="fa-solid fa-pen"></i>
+        </button>
+      </div>
+
+      <!-- In-Chat Search Drawer -->
+      <div class="search-drawer hidden" id="searchDrawer">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-leading-icon"></i>
+          <input type="text" id="chatSearchInput" placeholder="Type to search messages..." autocomplete="off">
+          <button type="button" class="search-clear-btn" id="clearSearchBtn" title="Close Search">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="search-results-info" id="searchResultsInfo"></div>
+      </div>
+
+      <!-- Shared Scratchpad Drawer -->
+      <div class="scratchpad-drawer hidden" id="scratchpadDrawer">
+        <div class="scratchpad-header">
+          <div class="scratchpad-title">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span>Duo Shared Scratchpad</span>
+          </div>
+          <span class="sync-status" id="scratchpadSyncStatus">Synced</span>
+          <button type="button" class="btn-icon-sm" id="closeScratchpadBtn" title="Close Notes">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <textarea id="scratchpadTextarea" placeholder="Write shared notes, links, to-do items, or reminders here... (Live synced for both)"></textarea>
+      </div>
+
+      <!-- Message Feed -->
+      <section class="message-feed" id="messageFeed">
+        <div class="encryption-banner">
+          <i class="fa-solid fa-lock"></i>
+          <span>End-to-End Encrypted | TRUST ME</span>
+        </div>
+      </section>
+
+      <!-- Partner Live Typing Notification -->
+      <div class="typing-pill hidden" id="typingIndicator">
+        <span class="typing-dot"></span>
+        <span id="typingText">Partner is typing...</span>
+      </div>
+
+      <!-- Emoji Tray Modal -->
+      <div class="emoji-tray hidden" id="emojiTray">
+        <button type="button" class="emoji-btn">❤️</button>
+        <button type="button" class="emoji-btn">💖</button>
+        <button type="button" class="emoji-btn">✨</button>
+        <button type="button" class="emoji-btn">😊</button>
+        <button type="button" class="emoji-btn">😍</button>
+        <button type="button" class="emoji-btn">🥰</button>
+        <button type="button" class="emoji-btn">🌙</button>
+        <button type="button" class="emoji-btn">⭐</button>
+        <button type="button" class="emoji-btn">🌸</button>
+        <button type="button" class="emoji-btn">☕</button>
+        <button type="button" class="emoji-btn">🎉</button>
+        <button type="button" class="emoji-btn">🔥</button>
+      </div>
+
+      <!-- Composer Bar with Quoted Reply Preview -->
+      <footer class="composer-bar">
+        <div class="reply-preview-box hidden" id="replyPreviewBox">
+          <div class="reply-preview-content">
+            <span class="reply-to-user" id="replyToUser">Replying to...</span>
+            <p class="reply-to-text" id="replyToText">Message text</p>
+          </div>
+          <button type="button" class="cancel-reply-btn" id="cancelReplyBtn" title="Cancel Reply">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <form id="chatForm" autocomplete="off">
+          <button type="button" class="btn-icon" id="emojiToggleBtn" title="Insert Emoji">
+            <i class="fa-regular fa-face-smile"></i>
+          </button>
+          
+          <input type="text" id="chatInput" placeholder="Type Your Message....." required>
+          
+          <button type="submit" class="send-action-btn" id="sendBtn" title="Send Message">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </form>
+      </footer>
+
+      <!-- Bottom Minimal Footer -->
+      <div class="chat-subfooter">
+        <span>AlsaConnect | Designed By <strong class="highlight-author">Alsa</strong></span>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ================= CUSTOM CARD-BASED COUNTDOWN & CALENDAR MODAL ================= -->
+  <div class="modal-overlay hidden" id="countdownModal">
+    <div class="modal-card calendar-modal-card">
+      <div class="modal-icon user-edit"><i class="fa-solid fa-hourglass-start"></i></div>
+      <h3>Set Shared Countdown</h3>
+      <p class="modal-subtext">Target a special date, meetup, or anniversary for both of you:</p>
+      
+      <!-- Event Name Input -->
+      <div class="calendar-form-group">
+        <label><i class="fa-solid fa-tag"></i> Event Title</label>
+        <input type="text" id="countdownTitleInput" placeholder="e.g., Birthday / Anniversary / Meetup" maxlength="30">
+      </div>
+
+      <!-- Custom Glass Calendar Card UI -->
+      <div class="custom-calendar-card">
+        <div class="calendar-month-header">
+          <button type="button" class="cal-nav-btn" id="calPrevMonthBtn"><i class="fa-solid fa-chevron-left"></i></button>
+          <span class="cal-month-title" id="calMonthYearLabel">Month 2026</span>
+          <button type="button" class="cal-nav-btn" id="calNextMonthBtn"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        
+        <div class="calendar-weekdays-grid">
+          <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+        </div>
+        
+        <div class="calendar-days-grid" id="calendarDaysGrid">
+          <!-- Dynamically populated day cells -->
+        </div>
+
+        <!-- Custom Styled Time Selector -->
+        <div class="calendar-time-row">
+          <label><i class="fa-solid fa-clock"></i> Target Time:</label>
+          <div class="time-inputs-cluster">
+            <select id="calHourSelect"></select>
+            <span>:</span>
+            <select id="calMinuteSelect"></select>
+            <select id="calAmPmSelect">
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top: 12px;">
+        <button type="button" class="modal-btn save-btn" id="saveCountdownBtn">Start Shared Countdown</button>
+        <button type="button" class="modal-btn delete-me" id="clearCountdownBtn">Remove Countdown</button>
+        <button type="button" class="modal-btn cancel-btn" id="cancelCountdownBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nickname Setup Modal -->
+  <div class="modal-overlay hidden" id="nicknameModal">
+    <div class="modal-card">
+      <div class="modal-icon user-edit"><i class="fa-solid fa-user-pen"></i></div>
+      <h3>Set Partner Nickname</h3>
+      <p>Give your partner a custom display nickname:</p>
+      <input type="text" id="nicknameInput" placeholder="Enter custom nickname..." maxlength="20" style="margin-bottom: 14px; text-align: center;">
+      <div class="modal-actions">
+        <button type="button" class="modal-btn save-btn" id="saveNicknameBtn">Save Nickname</button>
+        <button type="button" class="modal-btn delete-me" id="resetNicknameBtn">Reset to Default</button>
+        <button type="button" class="modal-btn cancel-btn" id="cancelNicknameBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Message Modal -->
+  <div class="modal-overlay hidden" id="deleteModal">
+    <div class="modal-card">
+      <div class="modal-icon"><i class="fa-regular fa-trash-can"></i></div>
+      <h3>Delete Message?</h3>
+      <p>Choose how you want to delete this message:</p>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn delete-everyone" id="deleteEveryoneBtn">Delete for Everyone</button>
+        <button type="button" class="modal-btn delete-me" id="deleteMeBtn">Delete for Me</button>
+        <button type="button" class="modal-btn cancel-btn" id="cancelDeleteBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clear All Chat Modal -->
+  <div class="modal-overlay hidden" id="clearChatModal">
+    <div class="modal-card">
+      <div class="modal-icon warning"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <h3>Clear Entire Chat?</h3>
+      <p>This will wipe the message history for this chat session.</p>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn delete-everyone" id="confirmClearChatBtn">Yes, Clear All</button>
+        <button type="button" class="modal-btn cancel-btn" id="cancelClearChatBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
