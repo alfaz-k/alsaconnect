@@ -935,6 +935,18 @@ input[type="text"]:focus, input[type="password"]:focus {
   transform: translateX(2px);
 }
 
+.drawer-item.active-bio-danger {
+  color: #f87171 !important;
+}
+
+.drawer-item.active-bio-danger i {
+  color: #f87171 !important;
+}
+
+.drawer-item.active-bio-danger:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+}
+
 .drawer-item.danger-item {
   color: #f87171;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
