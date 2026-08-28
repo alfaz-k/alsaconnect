@@ -45,6 +45,8 @@ const USERS = {
 let currentUser = null;
 let currentCaptcha = "";
 let typingTimeout = null;
+let inactivityTimer = null;
+const INACTIVITY_LIMIT_MS = 30 * 60 * 1000; // 30 Minutes Inactivity Auto-Lock
 let selectedMessageId = null;
 let activeQuotedReply = null;
 let lastRenderedDateString = "";
@@ -317,6 +319,8 @@ biometricUnlockBtn.addEventListener("click", async () => {
 
     if (assertion) {
       currentUser = { ...USERS[savedUsername], username: savedUsername };
+      localStorage.setItem("alsaconnect_active_session", savedUsername);
+      localStorage.setItem("alsaconnect_active_view", "hub");
       showWelcomeToast("✨ Biometric verified successfully!");
       openConversationHub();
     }
@@ -363,8 +367,8 @@ menuBiometricBtn.addEventListener("click", async () => {
           displayName: currentUser.name
         },
         pubKeyCredParams: [
-          { type: "public-key", alg: -7 },
-          { type: "public-key", alg: -257 }
+          { type: "public-key", alg: -7 },  // ES256
+          { type: "public-key", alg: -257 } // RS256
         ],
         authenticatorSelection: {
           authenticatorAttachment: "platform",
@@ -428,6 +432,8 @@ loginForm.addEventListener("submit", (e) => {
   }
 
   currentUser = { ...USERS[userKey], username: userKey };
+  localStorage.setItem("alsaconnect_active_session", userKey);
+  localStorage.setItem("alsaconnect_active_view", "hub");
   showWelcomeToast();
   openConversationHub();
 });
@@ -455,10 +461,35 @@ function updateAllDisplayNameReferences() {
 }
 
 // =================================================================
-// 8. CONVERSATIONS HUB & UNREAD BADGE COUNTER
+// 8. 30-MINUTE INACTIVITY AUTO-LOCK
+// =================================================================
+function resetInactivityTimer() {
+  if (!currentUser) return;
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => {
+    handleInactivityAutoLock();
+  }, INACTIVITY_LIMIT_MS);
+}
+
+function handleInactivityAutoLock() {
+  if (currentUser) {
+    authError.textContent = "Session locked due to 30 minutes of inactivity.";
+    executeLogout();
+  }
+}
+
+["mousemove", "mousedown", "keydown", "touchstart", "scroll"].forEach(event => {
+  window.addEventListener(event, resetInactivityTimer, { passive: true });
+});
+
+// =================================================================
+// 9. CONVERSATIONS HUB & LIVE UNREAD BADGE COUNTER
 // =================================================================
 function openConversationHub() {
   isChatViewActive = false;
+  localStorage.setItem("alsaconnect_active_view", "hub");
+  resetInactivityTimer();
+
   authScreen.classList.add("hidden");
   chatScreen.classList.add("hidden");
   conversationHubScreen.classList.remove("hidden");
@@ -492,7 +523,7 @@ function openConversationHub() {
     }
   });
 
-  // Calculate unread incoming messages count and display latest preview
+  // Real-time unread counter and latest preview synchronization
   db.ref("messages").on("value", (snap) => {
     const data = snap.val();
     if (data) {
@@ -505,7 +536,7 @@ function openConversationHub() {
         hubLastMessagePreview.textContent = "This message was deleted";
       }
 
-      // Count unread messages sent by partner
+      // Count unread messages in real-time
       let unreadCount = 0;
       Object.entries(data).forEach(([key, val]) => {
         if (val.sender === currentUser.partnerUser && !val.seen && !val.deleted && !deletedForMeList.includes(key)) {
@@ -535,10 +566,11 @@ backToHubBtn.addEventListener("click", () => {
   isChatViewActive = false;
   chatScreen.classList.add("hidden");
   conversationHubScreen.classList.remove("hidden");
+  openConversationHub();
 });
 
 // =================================================================
-// 9. RELATIVE "LAST ACTIVE" FORMATTER[cite: 4]
+// 10. RELATIVE "LAST ACTIVE" FORMATTER[cite: 4]
 // =================================================================
 function formatLastSeen(timestamp) {
   if (!timestamp) return "Offline";
@@ -568,7 +600,7 @@ function formatSeenTime(timestamp) {
 }
 
 // =================================================================
-// 10. SMART DATE DIVIDERS HELPER[cite: 4]
+// 11. SMART DATE DIVIDERS HELPER[cite: 4]
 // =================================================================
 function getDateLabel(timestamp) {
   const msgDate = new Date(timestamp);
@@ -597,7 +629,7 @@ function checkAndInsertDateDivider(timestamp) {
 }
 
 // =================================================================
-// 11. SHARED COUNTDOWN TIMER ENGINE & CUSTOM CALENDAR[cite: 4]
+// 12. SHARED COUNTDOWN TIMER ENGINE & CUSTOM CALENDAR[cite: 4]
 // =================================================================
 function populateTimeDropdowns() {
   calHourSelect.innerHTML = "";
@@ -793,7 +825,7 @@ function updateCountdownDigits() {
 }
 
 // =================================================================
-// 12. INSTAGRAM-STYLE "SEEN" RECEIPT SYSTEM
+// 13. REALTIME CHAT ENGINE (INSTAGRAM SEEN RECEIPT SYSTEM)
 // =================================================================
 function markIncomingMessagesAsSeen() {
   if (!isChatViewActive || !currentUser) return;
@@ -814,10 +846,8 @@ function markIncomingMessagesAsSeen() {
 }
 
 function updateLastSeenReceipt() {
-  // Clear any existing single seen receipts from the feed
   document.querySelectorAll(".instagram-seen-status").forEach(el => el.remove());
 
-  // Find the last sent message element in DOM
   const sentWrappers = document.querySelectorAll(".msg-wrapper.sent:not(.deleted-wrapper)");
   if (!sentWrappers.length) return;
 
@@ -838,6 +868,9 @@ function updateLastSeenReceipt() {
 
 function startChatSession() {
   isChatViewActive = true;
+  localStorage.setItem("alsaconnect_active_view", "chat");
+  resetInactivityTimer();
+
   updateAllDisplayNameReferences();
   initCountdownListener();
 
@@ -935,6 +968,7 @@ chatForm.addEventListener("submit", (e) => {
   clearQuotedReply();
   emojiTray.classList.add("hidden");
   toolsMenuDrawer.classList.add("hidden");
+  resetInactivityTimer();
 });
 
 function renderBubble(msgId, msg) {
@@ -1056,6 +1090,7 @@ function attachBubbleEvents(wrapper, msgId, msg, isMine) {
         }
       });
       wrapper.classList.remove("active-touch");
+      resetInactivityTimer();
     });
   });
 
@@ -1085,7 +1120,7 @@ function attachBubbleEvents(wrapper, msgId, msg, isMine) {
 }
 
 // =================================================================
-// 13. 3-DOT DRAWER MENU & NICKNAME MODAL[cite: 4]
+// 14. 3-DOT DRAWER MENU & NICKNAME MODAL[cite: 4]
 // =================================================================
 menuToggleBtn.addEventListener("click", (e) => {
   e.stopPropagation();
@@ -1154,7 +1189,7 @@ document.addEventListener("click", (e) => {
 });
 
 // =================================================================
-// 14. SHARED SCRATCHPAD LOGIC[cite: 4]
+// 15. SHARED SCRATCHPAD LOGIC[cite: 4]
 // =================================================================
 closeScratchpadBtn.addEventListener("click", () => {
   scratchpadDrawer.classList.add("hidden");
@@ -1173,7 +1208,7 @@ scratchpadTextarea.addEventListener("input", () => {
 });
 
 // =================================================================
-// 15. CLEAR CHAT MODAL ACTIONS[cite: 4]
+// 16. CLEAR CHAT MODAL ACTIONS[cite: 4]
 // =================================================================
 confirmClearChatBtn.addEventListener("click", () => {
   db.ref("messages").remove();
@@ -1185,7 +1220,7 @@ cancelClearChatBtn.addEventListener("click", () => {
 });
 
 // =================================================================
-// 16. QUOTED REPLIES[cite: 4]
+// 17. QUOTED REPLIES[cite: 4]
 // =================================================================
 function setQuotedReply(id, senderName, text) {
   activeQuotedReply = {
@@ -1208,7 +1243,7 @@ function clearQuotedReply() {
 cancelReplyBtn.addEventListener("click", clearQuotedReply);
 
 // =================================================================
-// 17. IN-CHAT SEARCH[cite: 4]
+// 18. IN-CHAT SEARCH[cite: 4]
 // =================================================================
 chatSearchInput.addEventListener("input", (e) => {
   const query = e.target.value.trim().toLowerCase();
@@ -1248,7 +1283,7 @@ function clearSearchFilter() {
 }
 
 // =================================================================
-// 18. DELETE / UNSEND[cite: 4]
+// 19. DELETE / UNSEND[cite: 4]
 // =================================================================
 deleteEveryoneBtn.addEventListener("click", () => {
   if (selectedMessageId) {
@@ -1281,7 +1316,7 @@ function closeDeleteModal() {
 }
 
 // =================================================================
-// 19. PRECISE TYPING BROADCAST[cite: 4]
+// 20. PRECISE TYPING BROADCAST[cite: 4]
 // =================================================================
 chatInput.addEventListener("input", () => {
   if (!currentUser) return;
@@ -1314,6 +1349,7 @@ document.querySelectorAll(".emoji-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
     chatInput.value += btn.textContent;
     chatInput.focus();
+    resetInactivityTimer();
   });
 });
 
@@ -1324,10 +1360,11 @@ document.addEventListener("click", (e) => {
 });
 
 // =================================================================
-// 20. LOGOUT CLEANUP[cite: 4]
+// 21. LOGOUT CLEANUP & SESSION REHYDRATION
 // =================================================================
 function executeLogout() {
   isChatViewActive = false;
+  clearTimeout(inactivityTimer);
   clearInterval(countdownInterval);
   if (currentUser) {
     db.ref(`status/${currentUser.username}`).set({ online: false, lastSeen: firebase.database.ServerValue.TIMESTAMP });
@@ -1336,6 +1373,9 @@ function executeLogout() {
   
   currentUser = null;
   activeCountdownTarget = null;
+  localStorage.removeItem("alsaconnect_active_session");
+  localStorage.removeItem("alsaconnect_active_view");
+
   clearQuotedReply();
   clearSearchFilter();
   searchDrawer.classList.add("hidden");
@@ -1363,6 +1403,25 @@ function escapeHTML(str) {
   );
 }
 
-// Initial Captcha Load & Biometric Check[cite: 4]
-generateCapitalCaptcha();
-checkBiometricAvailability();
+// Check for Saved Session on Refresh / Page Load
+function initSessionRehydration() {
+  generateCapitalCaptcha();
+  checkBiometricAvailability();
+
+  const savedActiveUser = localStorage.getItem("alsaconnect_active_session");
+  const savedActiveView = localStorage.getItem("alsaconnect_active_view") || "hub";
+
+  if (savedActiveUser && USERS[savedActiveUser]) {
+    currentUser = { ...USERS[savedActiveUser], username: savedActiveUser };
+    if (savedActiveView === "chat") {
+      authScreen.classList.add("hidden");
+      conversationHubScreen.classList.add("hidden");
+      chatScreen.classList.remove("hidden");
+      startChatSession();
+    } else {
+      openConversationHub();
+    }
+  }
+}
+
+initSessionRehydration();
