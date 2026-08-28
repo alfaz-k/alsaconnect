@@ -527,7 +527,7 @@ input[type="text"]:focus, input[type="password"]:focus {
   text-shadow: 0 0 10px rgba(167, 139, 250, 0.35);
 }
 
-/* ================= CONVERSATIONS LIST / MESSAGES HUB ================= */
+/* ================= CONVERSATIONS LIST / MESSAGES HUB[cite: 6] ================= */
 .hub-brand {
   display: flex;
   align-items: center;
