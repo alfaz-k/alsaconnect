@@ -100,6 +100,7 @@ const hubStatusBadge = document.getElementById("hubStatusBadge");
 const hubPartnerName = document.getElementById("hubPartnerName");
 const hubLastActiveTime = document.getElementById("hubLastActiveTime");
 const hubLastMessagePreview = document.getElementById("hubLastMessagePreview");
+const hubUnreadBadge = document.getElementById("hubUnreadBadge");
 const hubLogoutBtn = document.getElementById("hubLogoutBtn");
 const backToHubBtn = document.getElementById("backToHubBtn");
 
@@ -454,7 +455,7 @@ function updateAllDisplayNameReferences() {
 }
 
 // =================================================================
-// 8. CONVERSATIONS HUB (MESSAGES CARD SCREEN)[cite: 4]
+// 8. CONVERSATIONS HUB & UNREAD BADGE COUNTER
 // =================================================================
 function openConversationHub() {
   isChatViewActive = false;
@@ -475,11 +476,11 @@ function openConversationHub() {
     const val = snap.val();
     if (val && val.online) {
       hubStatusBadge.classList.add("online");
-      hubLastActiveTime.textContent = "Active Now";
+      hubLastActiveTime.textContent = "Online";
       hubLastActiveTime.style.color = "var(--online-color)";
 
       partnerStatusPill.classList.add("online");
-      partnerStatusText.textContent = "Active Now";
+      partnerStatusText.textContent = "Online";
     } else {
       hubStatusBadge.classList.remove("online");
       const relativeTime = val && val.lastSeen ? formatLastSeen(val.lastSeen) : "Offline";
@@ -491,15 +492,35 @@ function openConversationHub() {
     }
   });
 
-  db.ref("messages").limitToLast(1).on("value", (snap) => {
+  // Calculate unread incoming messages count and display latest preview
+  db.ref("messages").on("value", (snap) => {
     const data = snap.val();
     if (data) {
-      const lastMsg = Object.values(data)[0];
+      const allMsgs = Object.values(data);
+      const lastMsg = allMsgs[allMsgs.length - 1];
+
       if (lastMsg && !lastMsg.deleted) {
         hubLastMessagePreview.textContent = `${lastMsg.sender === currentUser.username ? 'You: ' : ''}${lastMsg.text}`;
       } else {
         hubLastMessagePreview.textContent = "This message was deleted";
       }
+
+      // Count unread messages sent by partner
+      let unreadCount = 0;
+      Object.entries(data).forEach(([key, val]) => {
+        if (val.sender === currentUser.partnerUser && !val.seen && !val.deleted && !deletedForMeList.includes(key)) {
+          unreadCount++;
+        }
+      });
+
+      if (unreadCount > 0) {
+        hubUnreadBadge.textContent = `${unreadCount} new message${unreadCount > 1 ? 's' : ''}`;
+        hubUnreadBadge.classList.remove("hidden");
+      } else {
+        hubUnreadBadge.classList.add("hidden");
+      }
+    } else {
+      hubUnreadBadge.classList.add("hidden");
     }
   });
 }
