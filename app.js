@@ -48,6 +48,7 @@ let typingTimeout = null;
 let selectedMessageId = null;
 let activeQuotedReply = null;
 let lastRenderedDateString = "";
+let isChatViewActive = false;
 let deletedForMeList = JSON.parse(localStorage.getItem("alsaconnect_deleted_for_me") || "[]");
 
 const THEMES = ["theme-default", "theme-oled", "theme-emerald"];
@@ -329,7 +330,6 @@ menuBiometricBtn.addEventListener("click", async () => {
 
   const saved = localStorage.getItem("alsaconnect_biometric_user");
   
-  // If active on this device for the current user, clicking disables/removes it
   if (saved && saved === currentUser.username) {
     localStorage.removeItem("alsaconnect_biometric_user");
     localStorage.removeItem("alsaconnect_biometric_id");
@@ -339,7 +339,6 @@ menuBiometricBtn.addEventListener("click", async () => {
     return;
   }
 
-  // Otherwise, enroll biometrics
   if (!window.PublicKeyCredential) {
     showWelcomeToast("❌ Biometrics not supported on this browser.");
     return;
@@ -458,6 +457,7 @@ function updateAllDisplayNameReferences() {
 // 8. CONVERSATIONS HUB (MESSAGES CARD SCREEN)
 // =================================================================
 function openConversationHub() {
+  isChatViewActive = false;
   authScreen.classList.add("hidden");
   chatScreen.classList.add("hidden");
   conversationHubScreen.classList.remove("hidden");
@@ -511,6 +511,7 @@ openChatCard.addEventListener("click", () => {
 });
 
 backToHubBtn.addEventListener("click", () => {
+  isChatViewActive = false;
   chatScreen.classList.add("hidden");
   conversationHubScreen.classList.remove("hidden");
 });
@@ -759,9 +760,25 @@ function updateCountdownDigits() {
 }
 
 // =================================================================
-// 12. REALTIME CHAT ENGINE (PARTNER-ONLY TYPING LISTENER)
+// 12. REALTIME CHAT ENGINE (INSTAGRAM SEEN RECEIPT SYSTEM)
 // =================================================================
+function markIncomingMessagesAsSeen() {
+  if (!isChatViewActive || !currentUser) return;
+  
+  db.ref("messages").once("value", (snap) => {
+    const data = snap.val();
+    if (!data) return;
+
+    Object.entries(data).forEach(([key, val]) => {
+      if (val.sender === currentUser.partnerUser && !val.seen) {
+        db.ref(`messages/${key}/seen`).set(true);
+      }
+    });
+  });
+}
+
 function startChatSession() {
+  isChatViewActive = true;
   updateAllDisplayNameReferences();
   initCountdownListener();
 
@@ -800,6 +817,11 @@ function startChatSession() {
     if (msg && !deletedForMeList.includes(msgId)) {
       checkAndInsertDateDivider(msg.timestamp || Date.now());
       renderBubble(msgId, msg);
+
+      // If active and incoming from partner, mark seen
+      if (isChatViewActive && msg.sender === currentUser.partnerUser && !msg.seen) {
+        db.ref(`messages/${msgId}/seen`).set(true);
+      }
     }
   });
 
@@ -818,6 +840,8 @@ function startChatSession() {
     const existingElement = document.getElementById(`msg-${msgId}`);
     if (existingElement) existingElement.remove();
   });
+
+  markIncomingMessagesAsSeen();
 }
 
 // Send Message
@@ -833,6 +857,7 @@ chatForm.addEventListener("submit", (e) => {
     timestamp: Date.now(),
     formattedTime: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     deleted: false,
+    seen: false,
     reactions: {},
     replyTo: activeQuotedReply || null
   };
@@ -900,6 +925,12 @@ function createBubbleHTML(msgId, msg, isMine) {
     }
   }
 
+  // Instagram-style "Seen" text receipt below sent message
+  let seenReceiptHTML = "";
+  if (isMine && !msg.deleted && msg.seen === true) {
+    seenReceiptHTML = `<span class="seen-receipt">Seen</span>`;
+  }
+
   return `
     <div class="msg-bubble-container">
       ${!msg.deleted ? `
@@ -921,11 +952,11 @@ function createBubbleHTML(msgId, msg, isMine) {
         <div class="msg-content">${textDisplay}</div>
         <div class="msg-footer">
           <span>${msg.formattedTime}</span>
-          ${isMine && !msg.deleted ? '<i class="fa-solid fa-check-double" style="font-size:0.65rem;"></i>' : ''}
         </div>
       </div>
     </div>
     ${reactionsHTML}
+    ${seenReceiptHTML}
   `;
 }
 
@@ -1236,6 +1267,7 @@ document.addEventListener("click", (e) => {
 // 20. LOGOUT CLEANUP
 // =================================================================
 function executeLogout() {
+  isChatViewActive = false;
   clearInterval(countdownInterval);
   if (currentUser) {
     db.ref(`status/${currentUser.username}`).set({ online: false, lastSeen: firebase.database.ServerValue.TIMESTAMP });
