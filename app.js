@@ -11,14 +11,14 @@ const firebaseConfig = {
   appId: "1:166143567404:web:ca3702d283ad5a8e6a9389"
 };
 
-// Initialize Firebase SDK
+// Initialize Firebase SDK[cite: 4]
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 const db = firebase.database();
 
 // =================================================================
-// 2. HARDCODED USERS (Hafsa & Alfaz Only)
+// 2. HARDCODED USERS (Hafsa & Alfaz Only)[cite: 4]
 // =================================================================
 const USERS = {
   "Hafsa81": {
@@ -41,7 +41,7 @@ const USERS = {
   }
 };
 
-// Application State
+// Application State[cite: 4]
 let currentUser = null;
 let currentCaptcha = "";
 let typingTimeout = null;
@@ -55,27 +55,27 @@ const THEMES = ["theme-default", "theme-oled", "theme-emerald"];
 let currentThemeIndex = 0;
 let scratchpadSaveTimeout = null;
 
-// Countdown State
+// Countdown State[cite: 4]
 let activeCountdownTarget = null;
 let countdownInterval = null;
 let calSelectedDate = new Date();
 let calViewingMonth = calSelectedDate.getMonth();
 let calViewingYear = calSelectedDate.getFullYear();
 
-// DOM Elements
+// DOM Elements[cite: 4]
 const welcomeToast = document.getElementById("welcomeToast");
 const toastMessage = document.getElementById("toastMessage");
 const authScreen = document.getElementById("authScreen");
 const conversationHubScreen = document.getElementById("conversationHubScreen");
 const chatScreen = document.getElementById("chatScreen");
 
-// Camouflage Elements
+// Camouflage Elements[cite: 4]
 const camouflageScreen = document.getElementById("camouflageScreen");
 const camoExitTrigger = document.getElementById("camoExitTrigger");
 const hubCamoBtn = document.getElementById("hubCamoBtn");
 const chatCamoBtn = document.getElementById("chatCamoBtn");
 
-// Auth Form Elements
+// Auth Form Elements[cite: 4]
 const loginForm = document.getElementById("loginForm");
 const usernameInput = document.getElementById("username");
 const passwordInput = document.getElementById("password");
@@ -85,7 +85,7 @@ const refreshCaptchaBtn = document.getElementById("refreshCaptchaBtn");
 const authError = document.getElementById("authError");
 const togglePassword = document.getElementById("togglePassword");
 
-// Biometric Elements
+// Biometric Elements[cite: 4]
 const biometricLoginBox = document.getElementById("biometricLoginBox");
 const biometricUnlockBtn = document.getElementById("biometricUnlockBtn");
 const savedBioUsername = document.getElementById("savedBioUsername");
@@ -93,7 +93,7 @@ const menuBiometricBtn = document.getElementById("menuBiometricBtn");
 const menuBiometricText = document.getElementById("menuBiometricText");
 const menuBiometricIcon = document.getElementById("menuBiometricIcon");
 
-// Hub Elements
+// Hub Elements[cite: 4]
 const openChatCard = document.getElementById("openChatCard");
 const hubPartnerAvatar = document.getElementById("hubPartnerAvatar");
 const hubStatusBadge = document.getElementById("hubStatusBadge");
@@ -103,7 +103,7 @@ const hubLastMessagePreview = document.getElementById("hubLastMessagePreview");
 const hubLogoutBtn = document.getElementById("hubLogoutBtn");
 const backToHubBtn = document.getElementById("backToHubBtn");
 
-// Chat Header Elements
+// Chat Header Elements[cite: 4]
 const partnerDisplayName = document.getElementById("partnerDisplayName");
 const partnerAvatar = document.getElementById("partnerAvatar");
 const partnerStatusPill = document.getElementById("partnerStatusPill");
@@ -113,7 +113,7 @@ const chatForm = document.getElementById("chatForm");
 const chatInput = document.getElementById("chatInput");
 const logoutBtn = document.getElementById("logoutBtn");
 
-// Drawer Menu Elements
+// Drawer Menu Elements[cite: 4]
 const menuToggleBtn = document.getElementById("menuToggleBtn");
 const toolsMenuDrawer = document.getElementById("toolsMenuDrawer");
 const menuCountdownBtn = document.getElementById("menuCountdownBtn");
@@ -123,7 +123,7 @@ const menuScratchpadBtn = document.getElementById("menuScratchpadBtn");
 const menuThemeBtn = document.getElementById("menuThemeBtn");
 const menuClearChatBtn = document.getElementById("menuClearChatBtn");
 
-// Countdown Banner Elements
+// Countdown Banner Elements[cite: 4]
 const countdownBanner = document.getElementById("countdownBanner");
 const countdownTitleDisplay = document.getElementById("countdownTitleDisplay");
 const cdDays = document.getElementById("cdDays");
@@ -132,7 +132,7 @@ const cdMinutes = document.getElementById("cdMinutes");
 const cdSeconds = document.getElementById("cdSeconds");
 const editCountdownQuickBtn = document.getElementById("editCountdownQuickBtn");
 
-// Custom Calendar Modal Elements
+// Custom Calendar Modal Elements[cite: 4]
 const countdownModal = document.getElementById("countdownModal");
 const countdownTitleInput = document.getElementById("countdownTitleInput");
 const calPrevMonthBtn = document.getElementById("calPrevMonthBtn");
@@ -146,38 +146,38 @@ const saveCountdownBtn = document.getElementById("saveCountdownBtn");
 const clearCountdownBtn = document.getElementById("clearCountdownBtn");
 const cancelCountdownBtn = document.getElementById("cancelCountdownBtn");
 
-// Typing & Emoji Elements
+// Typing & Emoji Elements[cite: 4]
 const typingIndicator = document.getElementById("typingIndicator");
 const typingText = document.getElementById("typingText");
 const emojiToggleBtn = document.getElementById("emojiToggleBtn");
 const emojiTray = document.getElementById("emojiTray");
 
-// Search Elements
+// Search Elements[cite: 4]
 const searchDrawer = document.getElementById("searchDrawer");
 const chatSearchInput = document.getElementById("chatSearchInput");
 const clearSearchBtn = document.getElementById("clearSearchBtn");
 const searchResultsInfo = document.getElementById("searchResultsInfo");
 
-// Scratchpad Elements
+// Scratchpad Elements[cite: 4]
 const scratchpadDrawer = document.getElementById("scratchpadDrawer");
 const scratchpadTextarea = document.getElementById("scratchpadTextarea");
 const closeScratchpadBtn = document.getElementById("closeScratchpadBtn");
 const scratchpadSyncStatus = document.getElementById("scratchpadSyncStatus");
 
-// Quoted Reply Elements
+// Quoted Reply Elements[cite: 4]
 const replyPreviewBox = document.getElementById("replyPreviewBox");
 const replyToUser = document.getElementById("replyToUser");
 const replyToText = document.getElementById("replyToText");
 const cancelReplyBtn = document.getElementById("cancelReplyBtn");
 
-// Nickname Modal Elements
+// Nickname Modal Elements[cite: 4]
 const nicknameModal = document.getElementById("nicknameModal");
 const nicknameInput = document.getElementById("nicknameInput");
 const saveNicknameBtn = document.getElementById("saveNicknameBtn");
 const resetNicknameBtn = document.getElementById("resetNicknameBtn");
 const cancelNicknameBtn = document.getElementById("cancelNicknameBtn");
 
-// Delete & Clear Modals
+// Delete & Clear Modals[cite: 4]
 const deleteModal = document.getElementById("deleteModal");
 const deleteEveryoneBtn = document.getElementById("deleteEveryoneBtn");
 const deleteMeBtn = document.getElementById("deleteMeBtn");
@@ -188,7 +188,7 @@ const confirmClearChatBtn = document.getElementById("confirmClearChatBtn");
 const cancelClearChatBtn = document.getElementById("cancelClearChatBtn");
 
 // =================================================================
-// 3. CAMOUFLAGE / PANIC MODE
+// 3. CAMOUFLAGE / PANIC MODE[cite: 4]
 // =================================================================
 function activateCamouflage() {
   camouflageScreen.classList.remove("hidden");
@@ -217,7 +217,7 @@ camoExitTrigger.addEventListener("click", (e) => {
 });
 
 // =================================================================
-// 4. CAPITAL-ONLY ALPHANUMERIC CAPTCHA
+// 4. CAPITAL-ONLY ALPHANUMERIC CAPTCHA[cite: 4]
 // =================================================================
 function generateCapitalCaptcha() {
   const charset = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -276,7 +276,7 @@ togglePassword.addEventListener("click", () => {
 });
 
 // =================================================================
-// 5. WEBAUTHN / BIOMETRIC AUTHENTICATION & REMOVE/DISABLE
+// 5. WEBAUTHN / BIOMETRIC AUTHENTICATION & REMOVE/DISABLE[cite: 4]
 // =================================================================
 function checkBiometricAvailability() {
   const savedBio = localStorage.getItem("alsaconnect_biometric_user");
@@ -362,8 +362,8 @@ menuBiometricBtn.addEventListener("click", async () => {
           displayName: currentUser.name
         },
         pubKeyCredParams: [
-          { type: "public-key", alg: -7 },  // ES256
-          { type: "public-key", alg: -257 } // RS256
+          { type: "public-key", alg: -7 },
+          { type: "public-key", alg: -257 }
         ],
         authenticatorSelection: {
           authenticatorAttachment: "platform",
@@ -403,7 +403,7 @@ function updateBiometricMenuLabel() {
 }
 
 // =================================================================
-// 6. AUTHENTICATION & LOGIN LOGIC
+// 6. AUTHENTICATION & LOGIN LOGIC[cite: 4]
 // =================================================================
 loginForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -440,7 +440,7 @@ function showWelcomeToast(customMsg) {
 }
 
 // =================================================================
-// 7. NICKNAME HANDLERS
+// 7. NICKNAME HANDLERS[cite: 4]
 // =================================================================
 function getPartnerDisplayName() {
   const customNick = localStorage.getItem(`alsaconnect_nick_${currentUser.username}`);
@@ -454,7 +454,7 @@ function updateAllDisplayNameReferences() {
 }
 
 // =================================================================
-// 8. CONVERSATIONS HUB (MESSAGES CARD SCREEN)
+// 8. CONVERSATIONS HUB (MESSAGES CARD SCREEN)[cite: 4]
 // =================================================================
 function openConversationHub() {
   isChatViewActive = false;
@@ -517,7 +517,7 @@ backToHubBtn.addEventListener("click", () => {
 });
 
 // =================================================================
-// 9. RELATIVE "LAST ACTIVE" FORMATTER
+// 9. RELATIVE "LAST ACTIVE" FORMATTER[cite: 4]
 // =================================================================
 function formatLastSeen(timestamp) {
   if (!timestamp) return "Offline";
@@ -534,8 +534,20 @@ function formatLastSeen(timestamp) {
   return `Last seen ${d.toLocaleDateString([], { month: "short", day: "numeric" })} at ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
 }
 
+function formatSeenTime(timestamp) {
+  if (!timestamp) return "just now";
+  const now = Date.now();
+  const diffSec = Math.floor((now - timestamp) / 1000);
+  if (diffSec < 60) return "just now";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour}h ago`;
+  return new Date(timestamp).toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
 // =================================================================
-// 10. SMART DATE DIVIDERS HELPER
+// 10. SMART DATE DIVIDERS HELPER[cite: 4]
 // =================================================================
 function getDateLabel(timestamp) {
   const msgDate = new Date(timestamp);
@@ -564,7 +576,7 @@ function checkAndInsertDateDivider(timestamp) {
 }
 
 // =================================================================
-// 11. SHARED COUNTDOWN TIMER ENGINE & CUSTOM CALENDAR
+// 11. SHARED COUNTDOWN TIMER ENGINE & CUSTOM CALENDAR[cite: 4]
 // =================================================================
 function populateTimeDropdowns() {
   calHourSelect.innerHTML = "";
@@ -760,7 +772,7 @@ function updateCountdownDigits() {
 }
 
 // =================================================================
-// 12. REALTIME CHAT ENGINE (INSTAGRAM SEEN RECEIPT SYSTEM)
+// 12. INSTAGRAM-STYLE "SEEN" RECEIPT SYSTEM
 // =================================================================
 function markIncomingMessagesAsSeen() {
   if (!isChatViewActive || !currentUser) return;
@@ -771,9 +783,35 @@ function markIncomingMessagesAsSeen() {
 
     Object.entries(data).forEach(([key, val]) => {
       if (val.sender === currentUser.partnerUser && !val.seen) {
-        db.ref(`messages/${key}/seen`).set(true);
+        db.ref(`messages/${key}`).update({
+          seen: true,
+          seenAt: Date.now()
+        });
       }
     });
+  });
+}
+
+function updateLastSeenReceipt() {
+  // Clear any existing single seen receipts from the feed
+  document.querySelectorAll(".instagram-seen-status").forEach(el => el.remove());
+
+  // Find the last sent message element in DOM
+  const sentWrappers = document.querySelectorAll(".msg-wrapper.sent:not(.deleted-wrapper)");
+  if (!sentWrappers.length) return;
+
+  const lastSentWrapper = sentWrappers[sentWrappers.length - 1];
+  const msgId = lastSentWrapper.id.replace("msg-", "");
+
+  db.ref(`messages/${msgId}`).once("value", (snap) => {
+    const val = snap.val();
+    if (val && val.seen === true && !val.deleted) {
+      const timeText = formatSeenTime(val.seenAt);
+      const seenDiv = document.createElement("div");
+      seenDiv.className = "instagram-seen-status";
+      seenDiv.innerHTML = `<span>Seen ${timeText}</span>`;
+      lastSentWrapper.appendChild(seenDiv);
+    }
   });
 }
 
@@ -818,10 +856,13 @@ function startChatSession() {
       checkAndInsertDateDivider(msg.timestamp || Date.now());
       renderBubble(msgId, msg);
 
-      // If active and incoming from partner, mark seen
       if (isChatViewActive && msg.sender === currentUser.partnerUser && !msg.seen) {
-        db.ref(`messages/${msgId}/seen`).set(true);
+        db.ref(`messages/${msgId}`).update({
+          seen: true,
+          seenAt: Date.now()
+        });
       }
+      updateLastSeenReceipt();
     }
   });
 
@@ -833,12 +874,14 @@ function startChatSession() {
     if (existingElement && !deletedForMeList.includes(msgId)) {
       updateBubble(existingElement, msgId, msg);
     }
+    updateLastSeenReceipt();
   });
 
   messagesRef.on("child_removed", (snapshot) => {
     const msgId = snapshot.key;
     const existingElement = document.getElementById(`msg-${msgId}`);
     if (existingElement) existingElement.remove();
+    updateLastSeenReceipt();
   });
 
   markIncomingMessagesAsSeen();
@@ -858,6 +901,7 @@ chatForm.addEventListener("submit", (e) => {
     formattedTime: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     deleted: false,
     seen: false,
+    seenAt: null,
     reactions: {},
     replyTo: activeQuotedReply || null
   };
@@ -875,7 +919,7 @@ chatForm.addEventListener("submit", (e) => {
 function renderBubble(msgId, msg) {
   const isMine = msg.sender === currentUser.username;
   const wrapper = document.createElement("div");
-  wrapper.className = `msg-wrapper ${isMine ? "sent" : "received"}`;
+  wrapper.className = `msg-wrapper ${isMine ? "sent" : "received"} ${msg.deleted ? "deleted-wrapper" : ""}`;
   wrapper.id = `msg-${msgId}`;
   wrapper.setAttribute("data-text", (msg.text || "").toLowerCase());
 
@@ -888,6 +932,7 @@ function renderBubble(msgId, msg) {
 
 function updateBubble(element, msgId, msg) {
   const isMine = msg.sender === currentUser.username;
+  element.className = `msg-wrapper ${isMine ? "sent" : "received"} ${msg.deleted ? "deleted-wrapper" : ""}`;
   element.setAttribute("data-text", (msg.text || "").toLowerCase());
   element.innerHTML = createBubbleHTML(msgId, msg, isMine);
   attachBubbleEvents(element, msgId, msg, isMine);
@@ -925,12 +970,6 @@ function createBubbleHTML(msgId, msg, isMine) {
     }
   }
 
-  // Instagram-style "Seen" text receipt below sent message
-  let seenReceiptHTML = "";
-  if (isMine && !msg.deleted && msg.seen === true) {
-    seenReceiptHTML = `<span class="seen-receipt">Seen</span>`;
-  }
-
   return `
     <div class="msg-bubble-container">
       ${!msg.deleted ? `
@@ -956,7 +995,6 @@ function createBubbleHTML(msgId, msg, isMine) {
       </div>
     </div>
     ${reactionsHTML}
-    ${seenReceiptHTML}
   `;
 }
 
@@ -1026,7 +1064,7 @@ function attachBubbleEvents(wrapper, msgId, msg, isMine) {
 }
 
 // =================================================================
-// 13. 3-DOT DRAWER MENU & NICKNAME MODAL
+// 13. 3-DOT DRAWER MENU & NICKNAME MODAL[cite: 4]
 // =================================================================
 menuToggleBtn.addEventListener("click", (e) => {
   e.stopPropagation();
@@ -1095,7 +1133,7 @@ document.addEventListener("click", (e) => {
 });
 
 // =================================================================
-// 14. SHARED SCRATCHPAD LOGIC
+// 14. SHARED SCRATCHPAD LOGIC[cite: 4]
 // =================================================================
 closeScratchpadBtn.addEventListener("click", () => {
   scratchpadDrawer.classList.add("hidden");
@@ -1114,7 +1152,7 @@ scratchpadTextarea.addEventListener("input", () => {
 });
 
 // =================================================================
-// 15. CLEAR CHAT MODAL ACTIONS
+// 15. CLEAR CHAT MODAL ACTIONS[cite: 4]
 // =================================================================
 confirmClearChatBtn.addEventListener("click", () => {
   db.ref("messages").remove();
@@ -1126,7 +1164,7 @@ cancelClearChatBtn.addEventListener("click", () => {
 });
 
 // =================================================================
-// 16. QUOTED REPLIES
+// 16. QUOTED REPLIES[cite: 4]
 // =================================================================
 function setQuotedReply(id, senderName, text) {
   activeQuotedReply = {
@@ -1149,7 +1187,7 @@ function clearQuotedReply() {
 cancelReplyBtn.addEventListener("click", clearQuotedReply);
 
 // =================================================================
-// 17. IN-CHAT SEARCH
+// 17. IN-CHAT SEARCH[cite: 4]
 // =================================================================
 chatSearchInput.addEventListener("input", (e) => {
   const query = e.target.value.trim().toLowerCase();
@@ -1189,7 +1227,7 @@ function clearSearchFilter() {
 }
 
 // =================================================================
-// 18. DELETE / UNSEND
+// 18. DELETE / UNSEND[cite: 4]
 // =================================================================
 deleteEveryoneBtn.addEventListener("click", () => {
   if (selectedMessageId) {
@@ -1209,6 +1247,7 @@ deleteMeBtn.addEventListener("click", () => {
     localStorage.setItem("alsaconnect_deleted_for_me", JSON.stringify(deletedForMeList));
     const targetElement = document.getElementById(`msg-${selectedMessageId}`);
     if (targetElement) targetElement.remove();
+    updateLastSeenReceipt();
   }
   closeDeleteModal();
 });
@@ -1221,7 +1260,7 @@ function closeDeleteModal() {
 }
 
 // =================================================================
-// 19. PRECISE TYPING BROADCAST
+// 19. PRECISE TYPING BROADCAST[cite: 4]
 // =================================================================
 chatInput.addEventListener("input", () => {
   if (!currentUser) return;
@@ -1245,7 +1284,7 @@ chatInput.addEventListener("blur", () => {
   }
 });
 
-// Emoji Tray
+// Emoji Tray[cite: 4]
 emojiToggleBtn.addEventListener("click", () => {
   emojiTray.classList.toggle("hidden");
 });
@@ -1264,7 +1303,7 @@ document.addEventListener("click", (e) => {
 });
 
 // =================================================================
-// 20. LOGOUT CLEANUP
+// 20. LOGOUT CLEANUP[cite: 4]
 // =================================================================
 function executeLogout() {
   isChatViewActive = false;
@@ -1303,6 +1342,6 @@ function escapeHTML(str) {
   );
 }
 
-// Initial Captcha Load & Biometric Check
+// Initial Captcha Load & Biometric Check[cite: 4]
 generateCapitalCaptcha();
 checkBiometricAvailability();
